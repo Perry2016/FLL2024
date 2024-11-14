@@ -1,0 +1,50 @@
+from hub import port # this adds ports
+from hub import motion_sensor
+import motor
+import runloop, motor_pair, color_sensor, color, distance_sensor
+import motor_pair
+from hub import motion_sensor
+import time
+
+
+motor_pair.pair(motor_pair.PAIR_1, port.A, port.B)
+# this pairs the two motor ports
+motion_sensor.reset_yaw(0)
+
+def Gyro_Turn(angle):
+    if angle >= motion_sensor.tilt_angles()[0]*(-0.1):
+        while motion_sensor.tilt_angles()[0]*(-0.1) < angle-2:
+            motor_pair.move(motor_pair.PAIR_1, 100, velocity=100, acceleration=100)
+        motor_pair.stop(motor_pair.PAIR_1)
+    else:
+        while motion_sensor.tilt_angles()[0]*(-0.1) > angle+2:
+            motor_pair.move(motor_pair.PAIR_1, -100, velocity=100, acceleration=100)
+        motor_pair.stop(motor_pair.PAIR_1)
+    time.sleep(0.1)
+
+
+def Gyro_Move(speed, cm):
+    motion_sensor.reset_yaw(0)
+    motor.reset_relative_position(port.B,0)
+    while motor.relative_position(port.B)/360*17.6< cm:
+        motor_pair.move(motor_pair.PAIR_1, int(0-motion_sensor.tilt_angles()[0]*(-0.1)), velocity=speed, acceleration=200,)
+    motor_pair.stop(motor_pair.PAIR_1)
+    time.sleep(0.2)
+
+async def main():
+    Gyro_Move(800,66)
+    Gyro_Turn(45)
+    Gyro_Move(800,8)
+    await motor.run_for_degrees(port.D,135,100)
+    await motor_pair.move_for_degrees(motor_pair.PAIR_1,25,0,velocity=-100)
+    Gyro_Turn(-135)
+    Gyro_Move(800,75)
+    await motor.run_for_degrees(port.D,-135,100)
+    Gyro_Move(800,20)
+    await motor.run_for_degrees(port.D,100,100)
+    Gyro_Move(800,23)
+    Gyro_Turn(-70)
+    Gyro_Move(800,60)
+    
+runloop.run(main())
+
