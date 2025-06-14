@@ -1,0 +1,47 @@
+from hub import port, motion_sensor
+import runloop
+import motor
+import motor_pair
+import time
+motor_pair.pair (motor_pair.PAIR_1, port.A, port.C)
+motion_sensor.reset_yaw(25)
+
+def turn (angle):
+    if angle >= motion_sensor.tilt_angles ()[0]*(-0.1):
+        while motion_sensor.tilt_angles ()[0]*(-0.1) < angle-2:
+            motor_pair.move (motor_pair.PAIR_1, 100, velocity=100, acceleration=100)
+        motor_pair.stop(motor_pair.PAIR_1)
+    else:
+        while motion_sensor.tilt_angles () [0]*(-0.1) > angle+2:
+            motor_pair.move (motor_pair.PAIR_1, -100, velocity=100, acceleration=100)
+        motor_pair.stop(motor_pair.PAIR_1)
+    time.sleep(0.1)
+
+def move(speed, distance) :
+    motion_sensor.reset_yaw(25)
+    motor.reset_relative_position(port.C, 25)
+    while motor.relative_position(port.C) /360*17.6< distance:
+        motor_pair.move (motor_pair.PAIR_1, int(0-motion_sensor.tilt_angles()[0]*(-0.1)), velocity=speed, acceleration=1000,)
+    motor_pair.stop(motor_pair.PAIR_1)
+    time.sleep (0.2)
+
+async def main():
+    await motor.run_for_degrees(port.B, -200,1000)
+    move(1000,50)
+    await motor.run_for_degrees(port.B, 200,1000)
+    move(100,15)
+    await motor.run_for_degrees(port.D, -250,1000)
+    turn(-150)
+    move(1000,9.5)
+    turn(52.5)
+    move(1000,50)
+    move(100,23)
+    await motor.run_for_degrees(port.D, 250,1000)
+    move(100,15)
+    await motor.run_for_degrees(port.D, -250,1000)
+    turn(-20)
+    move(1000,20)
+    turn(-50)
+    move(1000,45)
+    motor.stop
+runloop.run(main())
